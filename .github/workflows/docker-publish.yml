@@ -44,11 +44,8 @@ jobs:
         with:
           images: ${{ env.CONTAINER_IMAGE }}
           tags: |
-            # 总是打上 latest 标签
             type=raw,value=latest,enable=true
-            # 保留 Git tag 标签 (例如 v1.0.0)
             type=ref,event=tag
-            # 语义化精确版本标签 (例如 v1.0.0 会被转换为 1.0.0)
             type=semver,pattern={{version}}
 
       - name: Prepare build args
@@ -62,19 +59,9 @@ jobs:
           fi
           BUILDTIME="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           REVISION="${GITHUB_SHA}"
-          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            ENABLE_UPX_RAW="${{ github.event.inputs.enable_upx }}"
-          else
-            ENABLE_UPX_RAW="true"
-          fi
-          case "${ENABLE_UPX_RAW}" in
-            false|0|no|off) ENABLE_UPX=0 ;;
-            *) ENABLE_UPX=1 ;;
-          esac
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
           echo "buildtime=${BUILDTIME}" >> "${GITHUB_OUTPUT}"
           echo "revision=${REVISION}" >> "${GITHUB_OUTPUT}"
-          echo "enable_upx=${ENABLE_UPX}" >> "${GITHUB_OUTPUT}"
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -91,4 +78,3 @@ jobs:
             VERSION=${{ steps.vars.outputs.version }}
             BUILDTIME=${{ steps.vars.outputs.buildtime }}
             REVISION=${{ steps.vars.outputs.revision }}
-            ENABLE_UPX=${{ steps.vars.outputs.enable_upx }}
